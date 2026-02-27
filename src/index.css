@@ -1,3 +1,48 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-[#0c0c0c] text-white font-sans overflow-x-hidden;
+    }
+}
+
+@layer components {
+    .tactical-panel {
+        @apply bg-black/60 backdrop-blur-md border border-white/10 relative overflow-hidden;
+    }
+
+    .tactical-panel::before {
+        content: '';
+        @apply absolute top-0 left-0 w-[2px] h-full bg-orange-500/50 shadow-[0_0_10px_rgba(249, 115, 22, 0.5)];
+    }
+
+    .tactical-btn {
+        @apply relative px-6 py-3 font-bold uppercase tracking-wider transition-all duration-300 border border-white/20 hover:border-orange-500/50 hover:bg-orange-500/10 active:scale-95;
+    }
+
+    .tactical-btn-primary {
+        @apply tactical-btn bg-orange-600 text-white border-none hover:bg-orange-700 shadow-[0_0_20px_rgba(234, 88, 12, 0.3)];
+    }
+
+    .hud-line {
+        @apply h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent w-full my-4;
+    }
+}
+
+@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+.scanline {
+    @apply absolute inset-0 pointer-events-none;
+    background: linear-gradient(to bottom, transparent, rgba(249, 115, 22, 0.05) 50%, transparent);
+    animation: scanline 8s linear infinite;
+}

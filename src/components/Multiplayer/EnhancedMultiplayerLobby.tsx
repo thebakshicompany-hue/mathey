@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Play, Crown, Trophy, Clock, Zap } from 'lucide-react';
+import { Users, Play, Crown, Trophy, Clock, Zap, Shield, Target, MessageSquare, LogOut, Plus, Search } from 'lucide-react';
 import { Room } from 'colyseus.js';
-import { colyseusClient, GameOptions, Player, getRoomId } from '../../lib/colyseus-client';
+import { colyseusClient, Player, getRoomId } from '../../lib/colyseus-client';
 import { Character, GameMode, DifficultyLevel, Player as GamePlayer, ChatMessage } from '../../types/game';
 import { ChatSystem } from '../Chat/ChatSystem';
 import toast from 'react-hot-toast';
@@ -12,7 +12,7 @@ interface EnhancedMultiplayerLobbyProps {
   gameMode: GameMode;
   difficulty: DifficultyLevel;
   playerName: string;
-  setPlayerName: (name: string) => void; // Add this prop
+  setPlayerName: (name: string) => void;
   onGameStart: (room: Room) => void;
   onBack: () => void;
 }
@@ -36,47 +36,38 @@ export const EnhancedMultiplayerLobby: React.FC<EnhancedMultiplayerLobbyProps> =
   const [createdRoomId, setCreatedRoomId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Automatically join a game if no room is active
     if (!room) {
       joinGame();
     }
     return () => {
-      if (room) {
-        room.leave();
-      }
+      if (room) room.leave();
     };
   }, [room]);
 
   useEffect(() => {
     if (room) {
-      // Listen for game state changes
       room.onStateChange((state) => {
         setPlayers(new Map(state.players));
         setGameStatus(state.status);
       });
 
-      // Listen for game messages
       room.onMessage('welcome', () => {
-        toast.success(`Welcome to ${gameMode.name}!`);
-        addSystemMessage(`${playerName} joined the game`);
+        toast.success(`CONNECTION ESTABLISHED: ${gameMode.name.toUpperCase()}`);
+        addSystemMessage(`OPERATOR ${playerName.toUpperCase()} SYNCHRONIZED`);
       });
 
       room.onMessage('player_joined', (message) => {
-        addSystemMessage(`${message.playerName} joined the game`);
+        addSystemMessage(`NEW CONTACT: ${message.playerName.toUpperCase()}`);
       });
 
       room.onMessage('player_left', (message) => {
-        addSystemMessage(`${message.playerName} left the game`);
-      });
-
-      room.onMessage('waiting_for_players', (message) => {
-        console.log(`Waiting: ${message.ready}/${message.total} players ready`);
+        addSystemMessage(`CONTACT LOST: ${message.playerName.toUpperCase()}`);
       });
 
       room.onMessage('game_starting', (message) => {
         setCountdown(message.countdown);
-        toast.success('Game starting!');
-        
+        toast.success('MISSION COMMENCING...');
+
         const countdownInterval = setInterval(() => {
           setCountdown(prev => {
             if (prev <= 1) {
@@ -112,8 +103,7 @@ export const EnhancedMultiplayerLobby: React.FC<EnhancedMultiplayerLobbyProps> =
       });
       setRoom(gameRoom);
     } catch (error) {
-      console.error('Failed to join game:', error);
-      toast.error('Failed to join game. Make sure the server is running!');
+      toast.error('UPLINK FAILED. SERVER OFFLINE.');
     } finally {
       setIsJoining(false);
     }
@@ -123,7 +113,7 @@ export const EnhancedMultiplayerLobby: React.FC<EnhancedMultiplayerLobbyProps> =
     if (room) {
       colyseusClient.sendReady();
       setIsReady(true);
-      toast.success('You are ready!');
+      toast.success('READY STATUS BROADCASTED');
     }
   };
 
@@ -138,34 +128,27 @@ export const EnhancedMultiplayerLobby: React.FC<EnhancedMultiplayerLobbyProps> =
         totalRounds: 10
       });
       setRoom(newRoom);
-      setCreatedRoomId(getRoomId(newRoom) || ''); // Set the created room ID robustly
-      toast.success('Room created successfully!');
+      setCreatedRoomId(getRoomId(newRoom) || '');
+      toast.success('ENCRYPTED ROOM GENERATED');
     } catch (error) {
-      console.error('Failed to create room:', error);
-      toast.error('Failed to create room. Make sure the server is running!');
+      toast.error('GENERATION FAILED');
     }
   };
 
   const handleJoinRoomById = async () => {
-    if (!roomIdToJoin.trim()) {
-      toast.error('Please enter a Room ID to join.');
-      return;
-    }
+    if (!roomIdToJoin.trim()) return;
     setIsJoining(true);
     try {
       const gameRoom = await colyseusClient.joinRoomById(roomIdToJoin, {
         name: playerName,
-        level: parseInt(difficulty.gradeRange.split(' ')[1].split('-')[0]),
-        gameMode: gameMode.id as 'speed' | 'chess' | 'minecraft',
-        character: character.id,
-        maxPlayers: 6,
-        totalRounds: 10
+        level: 1,
+        gameMode: gameMode.id as any,
+        character: character.id
       });
       setRoom(gameRoom);
-      toast.success(`Joined room ${roomIdToJoin} successfully!`);
+      toast.success('SECURE CHANNEL JOINED');
     } catch (error) {
-      console.error(`Failed to join room by ID ${roomIdToJoin}:`, error);
-      toast.error(`Failed to join room ${roomIdToJoin}. Make sure the ID is correct and the server is running!`);
+      toast.error('INVALID FREQUENCY / ROOM ID');
     } finally {
       setIsJoining(false);
     }
@@ -175,291 +158,252 @@ export const EnhancedMultiplayerLobby: React.FC<EnhancedMultiplayerLobbyProps> =
     if (room) {
       await colyseusClient.leaveGame();
       setRoom(null);
-      setPlayers(new Map());
-      setIsReady(false);
       onBack();
     }
   };
 
   const addSystemMessage = (message: string) => {
-    const newMessage: ChatMessage = {
+    setChatMessages(prev => [...prev, {
       id: Date.now().toString(),
       playerId: 'system',
-      playerName: 'System',
-      message,
+      playerName: 'SYSTEM',
+      message: '> ' + message,
       timestamp: Date.now(),
       type: 'system'
-    };
-    setChatMessages(prev => [...prev, newMessage]);
+    }]);
   };
 
   const addChatMessage = (playerId: string, playerName: string, message: string) => {
-    const newMessage: ChatMessage = {
+    setChatMessages(prev => [...prev, {
       id: Date.now().toString(),
       playerId,
       playerName,
       message,
       timestamp: Date.now(),
       type: 'message'
-    };
-    setChatMessages(prev => [...prev, newMessage]);
-  };
-
-  const handleSendMessage = (message: string) => {
-    if (room) {
-      room.send('chat_message', { message });
-    }
+    }]);
   };
 
   if (isJoining) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
-        <motion.div 
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-white mb-2">Joining Game...</h2>
-          <p className="text-gray-300">Finding the perfect match for you!</p>
-        </motion.div>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-8">
+        <div className="tactical-panel p-12 text-center max-w-lg w-full">
+          <div className="scanline" />
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full mx-auto mb-6"
+          />
+          <h2 className="text-2xl font-black uppercase italic tracking-widest text-white mb-2">Establishing Uplink</h2>
+          <p className="text-orange-500 font-bold animate-pulse">SYNCHRONIZING SECURE CHANNEL...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <motion.div 
-          className="text-center mb-8"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className="text-4xl font-bold text-white mb-2">Game Lobby</h1>
-          <div className={`inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r ${gameMode.color} text-white font-semibold`}>
-            <span className="mr-2 text-xl">{gameMode.icon}</span>
-            {gameMode.name} - {difficulty.name}
-          </div>
-        </motion.div>
+    <div className="min-h-screen bg-[#0a0a0a] text-white p-8 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[url('/images/lobby-bg.png')] opacity-20 bg-cover bg-center" />
+      <div className="scanline" />
 
-        {/* Game Info */}
-        <motion.div 
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-            <div className="flex items-center justify-center space-x-2">
-              <Users className="w-5 h-5 text-blue-400" />
-              <span className="text-white">
-                {Array.from(players.values()).filter(p => p.connected).length}/6 Players
-              </span>
+      <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-12 gap-8 h-[calc(100vh-64px)]">
+
+        {/* Left Sidebar: Room Info & Controls */}
+        <div className="col-span-12 lg:col-span-3 flex flex-col space-y-6">
+          <div className="tactical-panel p-6 border-l-orange-500">
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-orange-500 mb-4">Channel Data</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-gray-500 uppercase">Operation</span>
+                <span className="text-sm font-black italic uppercase">{gameMode.name}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-gray-500 uppercase">Intensity</span>
+                <span className="text-sm font-black italic uppercase text-orange-500">{difficulty.name}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-gray-500 uppercase">Status</span>
+                <span className="text-sm font-black italic uppercase text-green-500 animate-pulse">Active</span>
+              </div>
             </div>
-            <div className="flex items-center justify-center space-x-2">
-              <Trophy className="w-5 h-5 text-yellow-400" />
-              <span className="text-white">10 Rounds</span>
-            </div>
-            <div className="flex items-center justify-center space-x-2">
-              <Clock className="w-5 h-5 text-green-400" />
-              <span className="text-white">{difficulty.timeLimit}s per question</span>
-            </div>
-            <div className="flex items-center justify-center space-x-2">
-              <Zap className="w-5 h-5 text-purple-400" />
-              <span className="text-white">{difficulty.pointMultiplier}x points</span>
+            <div className="hud-line" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-gray-500 uppercase">Rounds</span>
+                <span className="text-lg font-black italic">10</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-gray-500 uppercase">Timer</span>
+                <span className="text-lg font-black italic">{difficulty.timeLimit}s</span>
+              </div>
             </div>
           </div>
-        </motion.div>
 
-        {/* Your Character */}
-        <motion.div 
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-yellow-400/30"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <h3 className="text-xl font-bold text-white mb-4 text-center">Your Character</h3>
-          <div className="flex items-center justify-center space-x-6">
-            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${character.color} flex items-center justify-center text-3xl`}>
-              {character.avatar}
-            </div>
-            <div className="text-center">
-              <h4 className="text-2xl font-bold text-white mb-1">{character.name}</h4>
-              <p className="text-yellow-400 font-semibold">⚡ {character.specialAbility}</p>
-            </div>
-          </div>
-        </motion.div>
+          <div className="tactical-panel p-6 flex-1 flex flex-col">
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-500 mb-4">Command Center</h2>
+            <div className="space-y-3 flex-1">
+              <button
+                onClick={handleCreateRoom}
+                className="w-full tactical-btn-primary flex items-center justify-center space-x-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Initialize Room</span>
+              </button>
 
-        {/* Players List */}
-        <motion.div 
-          className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-            <Users className="w-6 h-6 mr-2" />
-            Players in Lobby
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <AnimatePresence>
-              {players.size > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-xl font-semibold text-white mb-4">Players in Lobby:</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Array.from(players.values()).map((player: GamePlayer) => (
-                      <motion.div
-                        key={player.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="bg-white/10 p-4 rounded-lg flex items-center space-x-3"
-                      >
-                        <Users className="w-5 h-5 text-blue-400" />
-                        <div>
-                          <p className="text-white font-medium">{player.name}</p>
-                          <p className="text-gray-400 text-sm">Level: {player.level}</p>
-                          <p className="text-gray-400 text-sm">Status: {player.ready ? 'Ready' : 'Waiting'}</p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
+              <div className="relative mt-6">
+                <input
+                  type="text"
+                  placeholder="FREQUENCY ID"
+                  value={roomIdToJoin}
+                  onChange={(e) => setRoomIdToJoin(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 p-3 text-xs font-bold focus:border-orange-500 outline-none uppercase placeholder:text-gray-700"
+                />
+                <button
+                  onClick={handleJoinRoomById}
+                  className="absolute right-2 top-2 p-1 hover:text-orange-500 transition-colors"
+                >
+                  <Search className="w-5 h-5" />
+                </button>
+              </div>
+
+              {createdRoomId && (
+                <div
+                  onClick={() => { navigator.clipboard.writeText(createdRoomId); toast.success('COPIED'); }}
+                  className="tactical-panel bg-orange-500/10 p-3 mt-4 cursor-pointer border-dashed hover:border-orange-500 transition-colors"
+                >
+                  <p className="text-[10px] font-black text-orange-500 mb-1 uppercase">Share Frequency</p>
+                  <p className="text-lg font-black tracking-widest text-white">{createdRoomId}</p>
                 </div>
               )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-
-        {/* Countdown */}
-        <AnimatePresence>
-          {countdown > 0 && (
-            <motion.div
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div
-                className="text-center"
-                initial={{ scale: 0.5 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              >
-                <motion.div
-                  className="text-8xl font-bold text-white mb-4"
-                  key={countdown}
-                  initial={{ scale: 1.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {countdown}
-                </motion.div>
-                <p className="text-2xl text-yellow-400 font-semibold">Game Starting...</p>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Action Buttons */}
-        <div className="flex justify-center space-x-4">
-          {!isReady ? (
-            <motion.button
-              onClick={handleReady}
-              className="flex items-center px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Ready to Battle!
-            </motion.button>
-          ) : (
-            <div className="flex items-center px-8 py-3 bg-green-500/20 border border-green-400 text-green-400 font-bold rounded-xl">
-              <Play className="w-5 h-5 mr-2" />
-              Ready! Waiting for others...
             </div>
-          )}
-          
-          <motion.button
-            onClick={handleCreateRoom}
-            className="px-6 py-3 bg-blue-500/20 border border-blue-400 text-blue-400 font-semibold rounded-xl hover:bg-blue-500/30 transition-all duration-200"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Create Room
-          </motion.button>
 
-          {createdRoomId && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center px-4 py-2 bg-indigo-500/20 border border-indigo-400 text-indigo-300 font-semibold rounded-xl"
+            <button
+              onClick={handleLeaveGame}
+              className="w-full tactical-btn border-red-500/50 text-red-500 hover:bg-red-500/10 flex items-center justify-center space-x-2 mt-4"
             >
-              <span className="mr-2">Room ID:</span>
-              <span className="font-bold text-white">{createdRoomId}</span>
-              <motion.button
-                onClick={() => {
-                  navigator.clipboard.writeText(createdRoomId);
-                  toast.success('Room ID copied to clipboard!');
-                }}
-                className="ml-2 px-3 py-1 bg-indigo-600/50 border border-indigo-500 text-white rounded-md hover:bg-indigo-600/70 transition-all duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Copy
-              </motion.button>
-            </motion.div>
-          )}
-
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              placeholder="Enter Room ID"
-              className="px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              value={roomIdToJoin}
-              onChange={(e) => setRoomIdToJoin(e.target.value)}
-            />
-            <motion.button
-              onClick={handleJoinRoomById}
-              className="px-6 py-3 bg-purple-500/20 border border-purple-400 text-purple-400 font-semibold rounded-xl hover:bg-purple-500/30 transition-all duration-200"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Join by ID
-            </motion.button>
+              <LogOut className="w-4 h-4" />
+              <span>Abort Mission</span>
+            </button>
           </div>
-          
-          <motion.button
-            onClick={handleLeaveGame}
-            className="px-6 py-3 bg-red-500/20 border border-red-400 text-red-400 font-semibold rounded-xl hover:bg-red-500/30 transition-all duration-200"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Leave Lobby
-          </motion.button>
         </div>
 
-        {gameStatus === 'starting' && !countdown && (
-          <motion.div 
-            className="text-center mt-6"
+        {/* Center: Operator Showcase */}
+        <div className="col-span-12 lg:col-span-6 flex flex-col">
+          <div className="flex-1 flex flex-col items-center justify-center relative">
+            <motion.img
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              src="/images/character-tactical.png"
+              className="max-h-[80%] object-contain"
+            />
+            <div className="absolute top-0 flex flex-col items-center">
+              <h1 className="text-4xl font-black uppercase italic tracking-tighter italic">Active Operator</h1>
+              <p className="text-orange-500 font-black tracking-[0.4em] uppercase text-xs mt-2">{playerName}</p>
+            </div>
+
+            <div className="absolute bottom-10 w-full px-12">
+              {!isReady ? (
+                <button
+                  onClick={handleReady}
+                  className="w-full py-6 bg-orange-600 text-white font-black text-2xl uppercase italic tracking-widest shadow-[0_0_30px_rgba(234,88,12,0.4)] hover:bg-orange-500 transition-all active:scale-95"
+                >
+                  Confirm Readiness
+                </button>
+              ) : (
+                <div className="w-full py-6 bg-green-600/20 border-2 border-green-500 text-green-500 font-black text-2xl uppercase italic tracking-widest text-center animate-pulse">
+                  Ready Status: Confirmed
+                </div>
+              )}
+            </div>
+
+            {/* AI Injector Button */}
+            <button
+              onClick={() => room?.send('add_ai')}
+              className="absolute right-0 bottom-40 tactical-btn bg-white/5 border-orange-500/30 text-orange-500 flex flex-col items-center p-4 hover:bg-orange-500/10"
+            >
+              <Shield className="w-8 h-8 mb-2" />
+              <span className="text-[10px] font-black uppercase">Inject AI</span>
+              <span className="text-[10px] font-black text-gray-500">SUPPORT UNIT</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Right Sidebar: Squad Status & Comms */}
+        <div className="col-span-12 lg:col-span-3 flex flex-col space-y-6">
+          <div className="tactical-panel p-6 flex flex-col h-[45%]">
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-500 mb-4 flex items-center justify-between">
+              Squad Status
+              <span className="text-orange-500">{Array.from(players.values()).length} / 6</span>
+            </h2>
+            <div className="space-y-4 overflow-y-auto pr-2 flex-1">
+              {Array.from(players.values()).map((p) => (
+                <div key={p.id} className="flex items-center space-x-3 p-3 bg-white/5 border border-white/10 rounded">
+                  <div className={`w-2 h-2 rounded-full ${p.ready ? 'bg-green-500' : 'bg-gray-700 animate-pulse'}`} />
+                  <div className="flex-1">
+                    <p className="text-[10px] font-black text-gray-500 uppercase">Operator</p>
+                    <p className="text-sm font-black italic truncate">{p.name.toUpperCase()}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black text-gray-500 uppercase">LV</p>
+                    <p className="text-sm font-black italic">{p.level}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="tactical-panel p-0 flex flex-col flex-1 overflow-hidden relative">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-500 flex items-center">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Comms Channel
+              </h2>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <ChatSystem
+                messages={chatMessages}
+                onSendMessage={(msg) => room?.send('chat_message', { message: msg })}
+                playerName={playerName}
+                isGameActive={false}
+              />
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Countdown Overlay */}
+      <AnimatePresence>
+        {countdown > 0 && (
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center"
           >
-            <div className="inline-flex items-center px-6 py-3 bg-yellow-500/20 border border-yellow-400 text-yellow-400 font-bold rounded-xl animate-pulse">
-              🎮 Preparing Battle Arena...
+            <div className="scanline" />
+            <p className="text-xs font-black tracking-[1em] text-orange-500 mb-8 uppercase animate-pulse">Initializing Engagement</p>
+            <motion.div
+              key={countdown}
+              initial={{ scale: 2, opacity: 0, rotate: -10 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              className="text-9xl font-black italic text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.3)]"
+            >
+              {countdown}
+            </motion.div>
+            <div className="mt-12 flex space-x-2">
+              {[...Array(3)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ opacity: [0.2, 1, 0.2] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                  className="w-12 h-1 bg-orange-500 shadow-[0_0_15px_rgba(234,88,12,0.8)]"
+                />
+              ))}
             </div>
           </motion.div>
         )}
-      </div>
-
-      {/* Chat System */}
-      <ChatSystem
-        messages={chatMessages}
-        onSendMessage={handleSendMessage}
-        playerName={playerName}
-        isGameActive={false}
-      />
+      </AnimatePresence>
     </div>
   );
 };
