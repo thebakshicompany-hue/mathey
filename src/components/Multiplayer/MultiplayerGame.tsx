@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Room } from 'colyseus.js';
-import { Clock, Lightbulb, Trophy, Users, Shield } from 'lucide-react';
+import { Clock, Lightbulb, Trophy, Users, Shield, Target, Crosshair, Zap, Activity } from 'lucide-react';
 import { colyseusClient } from '../../lib/colyseus-client';
 import { Player, MathQuestion } from '../../types/game';
 
@@ -20,6 +20,15 @@ interface AnswerResult {
   correct: boolean;
   points: number;
 }
+
+const HUDCorner = () => (
+  <>
+    <div className="hud-corner hud-corner-tl" />
+    <div className="hud-corner hud-corner-tr" />
+    <div className="hud-corner hud-corner-bl" />
+    <div className="hud-corner hud-corner-br" />
+  </>
+);
 
 export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ room, onGameEnd }) => {
   const [players, setPlayers] = useState<Map<string, Player>>(new Map());
@@ -100,48 +109,55 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ room, onGameEn
     if (hasAnswered || !currentQuestion) return;
     const timeSpent = Math.floor((Date.now() - startTimeRef.current) / 1000);
     setSelectedAnswer(answer);
-    colyseusClient.sendAnswer(answer, timeSpent);
+    room.send('answer', { answer, timeSpent });
   };
 
   const handleHintRequest = () => {
-    colyseusClient.requestHint();
+    room.send('request_hint');
   };
 
   if (gameStatus === 'finished') {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-8 relative overflow-hidden">
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center p-8 relative overflow-hidden font-mono">
         <div className="scanline" />
-        <div className="tactical-panel p-12 max-w-2xl w-full text-center bg-gradient-to-br from-black to-orange-950/20">
-          <Trophy className="w-20 h-20 text-orange-500 mx-auto mb-6 shadow-tactical-glow-xl" />
-          <h1 className="text-4xl font-black uppercase italic italic text-white mb-2">Operation Complete</h1>
-          <p className="text-orange-500 font-bold mb-8 uppercase tracking-widest italic tracking-[0.3em]">Final Debriefing</p>
+        <div className="tactical-panel p-12 max-w-4xl w-full text-center border-orange-500/40">
+          <HUDCorner />
+          <Trophy className="w-24 h-24 text-orange-500 mx-auto mb-8 shadow-tactical-glow-xl" />
+          <h1 className="text-6xl font-black uppercase italic italic text-white mb-4 glitch-text">Mission Summary</h1>
+          <p className="text-orange-500 font-bold mb-12 uppercase tracking-[0.5em] italic">Final Tactical Debrief</p>
 
-          <div className="space-y-4 mb-10 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 text-left">
             {leaderboard.map((player, index) => (
-              <div
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
                 key={player.id}
-                className={`flex items-center justify-between p-4 border ${index === 0 ? 'bg-orange-600/20 border-orange-500 shadow-tactical-glow-leader' : 'bg-white/5 border-white/10'
+                className={`flex items-center justify-between p-6 border-l-4 ${index === 0 ? 'bg-orange-600/10 border-orange-500 shadow-tactical-glow-leader' : 'bg-white/5 border-white/10'
                   }`}
               >
-                <div className="flex items-center space-x-4">
-                  <span className={`text-xl font-black italic italic ${index === 0 ? 'text-orange-500' : 'text-gray-500'}`}>
+                <div className="flex items-center space-x-6">
+                  <span className={`text-2xl font-black italic italic ${index === 0 ? 'text-orange-500' : 'text-gray-500'}`}>
                     {String(index + 1).padStart(2, '0')}
                   </span>
-                  <span className="font-black uppercase italic">{player.name}</span>
+                  <div>
+                    <p className="text-[10px] font-black text-gray-500 uppercase">Operator</p>
+                    <p className="text-xl font-black uppercase italic">{player.name}</p>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-black italic">{player.score}</span>
-                  <span className="text-[10px] font-black uppercase text-gray-500 block">POINTS</span>
+                  <p className="text-[10px] font-black text-gray-500 uppercase">XP Gained</p>
+                  <span className="text-3xl font-black italic text-orange-500">{player.score}</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
           <button
             onClick={onGameEnd}
-            className="tactical-btn-primary w-full text-xl py-4"
+            className="tactical-btn-primary w-full text-2xl py-6"
           >
-            Return to Command
+            RETURN TO COMMAND HUB
           </button>
         </div>
       </div>
@@ -150,88 +166,117 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ room, onGameEn
 
   if (!currentQuestion) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center relative overflow-hidden">
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center relative overflow-hidden font-mono text-orange-500">
         <div className="scanline" />
         <div className="text-center">
           <motion.div
-            animate={{ rotate: 360 }}
+            animate={{ rotate: 360, scale: [1, 1.1, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-orange-500/20 border-t-orange-500 rounded-full mx-auto mb-6"
-          />
-          <h2 className="text-2xl font-black uppercase italic italic text-white tracking-widest">Awaiting Mission Data...</h2>
+            className="w-24 h-24 border-2 border-orange-500/20 border-t-orange-500 rounded-full mx-auto mb-8 flex items-center justify-center"
+          >
+            <Crosshair className="w-10 h-10 animate-pulse" />
+          </motion.div>
+          <h2 className="text-3xl font-black uppercase italic tracking-[0.5em] glitch-text italic">Loading Mission Parameters...</h2>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-[#050505] text-white p-6 relative overflow-hidden font-mono">
       <div className="scanline" />
-      <div className="max-w-5xl mx-auto h-full flex flex-col">
+      <div className="max-w-7xl mx-auto h-full flex flex-col">
 
-        {/* HUD Top Bar */}
-        <div className="flex justify-between items-center mb-10">
-          <div className="tactical-panel px-6 py-2 border-l-orange-500">
-            <p className="text-[10px] font-black text-gray-500 uppercase">Engagement</p>
-            <p className="text-xl font-black italic uppercase italic tracking-tighter italic">Phase {roundNumber} <span className="text-gray-600">/ {totalRounds}</span></p>
+        {/* TOP HUD: SYSTEM TELEMETRY */}
+        <div className="flex justify-between items-start mb-12">
+          <div className="tactical-panel px-8 py-4 border-l-orange-500">
+            <HUDCorner />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Active Engagement</span>
+              <span className="text-3xl font-black italic uppercase italic tracking-tighter">Phase <span className="text-orange-500 bg-orange-500/10 px-2">{String(roundNumber).padStart(2, '0')}</span> <span className="text-gray-600 text-lg">/ {totalRounds}</span></span>
+            </div>
           </div>
 
           <div className="flex space-x-6">
-            <div className={`tactical-panel px-6 py-2 border-l-orange-500 ${timeRemaining < 10 ? 'bg-red-500/10 border-red-500 animate-pulse' : ''}`}>
-              <p className="text-[10px] font-black text-gray-500 uppercase">Timer</p>
-              <div className="flex items-center space-x-2">
-                <Clock className={`w-5 h-5 ${timeRemaining < 10 ? 'text-red-500' : 'text-orange-500'}`} />
-                <span className="text-xl font-black italic">{timeRemaining}s</span>
+            <div className={`tactical-panel px-8 py-4 border-l-orange-500 bg-black/40 ${timeRemaining < 10 ? 'border-red-500' : ''}`}>
+              <HUDCorner />
+              <div className="flex items-center space-x-6">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Time Remaining</span>
+                  <span className={`text-3xl font-black italic ${timeRemaining < 10 ? 'text-red-500 glitch-text' : 'text-white'}`}>{String(timeRemaining).padStart(2, '0')}s</span>
+                </div>
+                <Clock className={`w-10 h-10 ${timeRemaining < 10 ? 'text-red-500 animate-pulse' : 'text-orange-500/50'}`} />
               </div>
             </div>
-            <div className="tactical-panel px-6 py-2 border-l-blue-500 before:bg-blue-500/50">
-              <p className="text-[10px] font-black text-gray-500 uppercase">Squaddies</p>
-              <div className="flex items-center space-x-2">
-                <Users className="w-5 h-5 text-blue-500" />
-                <span className="text-xl font-black italic">{Array.from(players.values()).filter(p => p.connected).length}</span>
+
+            <div className="tactical-panel px-8 py-4 border-l-cyan-500 tactical-panel-cyan bg-black/40">
+              <HUDCorner />
+              <div className="flex items-center space-x-6">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Squad Connectivity</span>
+                  <span className="text-3xl font-black italic text-cyan-500">{(Array.from(players.values()).filter(p => p.connected).length / 6 * 100).toFixed(0)} <span className="text-xs">%</span></span>
+                </div>
+                <Activity className="w-10 h-10 text-cyan-500/50" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Combat Objective (Question) */}
-        <div className="flex-1 flex flex-col items-center justify-center py-10">
+        {/* CENTER: ENGAGEMENT INTERFACE */}
+        <div className="flex-1 flex flex-col items-center justify-center py-6">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-3xl"
+            className="w-full max-w-4xl relative"
           >
-            <div className="tactical-panel p-12 text-center bg-black/80 relative">
-              <div className="absolute top-0 left-0 p-2 text-[10px] font-black text-gray-700 uppercase">Input Required</div>
-              <h2 className="text-5xl font-black uppercase italic italic tracking-tight mb-8 leading-tight">
+            {/* Question Targeting Reticle */}
+            <div className="absolute -inset-10 pointer-events-none opacity-20 flex items-center justify-center">
+              <div className="w-full h-full border border-orange-500 rounded-full animate-ping" style={{ animationDuration: '3s' }} />
+              <div className="absolute w-[120%] h-[120%] border-t border-b border-orange-500/50 rotate-45" />
+              <div className="absolute w-[120%] h-[120%] border-t border-b border-orange-500/50 -rotate-45" />
+            </div>
+
+            <div className="tactical-panel p-20 text-center bg-black/90 border-orange-500/40 relative">
+              <HUDCorner />
+              <div className="absolute top-4 left-4 flex items-center space-x-2 text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">
+                <Target className="w-3 h-3" />
+                <span>Primary Objective Detected</span>
+              </div>
+
+              <h2 className="text-7xl font-black uppercase italic italic tracking-tight mb-16 glitch-text leading-none italic">
                 {currentQuestion.question}
               </h2>
 
               {hint && (
-                <div className="mb-8 p-4 bg-orange-500/10 border border-orange-500/50 flex items-center justify-center text-orange-500 font-bold uppercase italic text-sm">
-                  <Shield className="w-5 h-5 mr-3" />
-                  Intel: {hint}
-                </div>
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  className="mb-12 p-6 bg-cyan-500/5 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-black uppercase italic italic tracking-widest text-lg"
+                >
+                  <Shield className="w-6 h-6 mr-4 animate-pulse" />
+                  Tactical Intel: {hint}
+                </motion.div>
               )}
 
-              {/* Options Grid */}
-              <div className="grid grid-cols-2 gap-6">
+              {/* Engagement Controls (Options) */}
+              <div className="grid grid-cols-2 gap-8">
                 {currentQuestion.options.map((option, index) => (
                   <button
                     key={index}
                     onClick={() => handleAnswerSubmit(option)}
                     disabled={hasAnswered}
-                    className={`tactical-btn py-8 text-3xl font-black italic italic ${selectedAnswer === option
-                      ? lastResult?.correct
-                        ? 'bg-green-600 text-white border-green-500 shadow-tactical-glow-green'
-                        : 'bg-red-600 text-white border-red-500 shadow-tactical-glow-red'
-                      : hasAnswered
-                        ? option === currentQuestion.correctAnswer
-                          ? 'bg-green-600/20 text-green-500 border-green-500/50'
-                          : 'opacity-20 translate-y-1'
-                        : 'hover:bg-orange-500/10 hover:border-orange-500/50'
+                    className={`tactical-btn py-10 text-4xl font-black italic italic transition-all ${selectedAnswer === option
+                        ? lastResult?.correct
+                          ? 'bg-green-600/20 text-green-500 border-green-500/50 shadow-tactical-glow-green'
+                          : 'bg-red-600/20 text-red-500 border-red-500/50 shadow-tactical-glow-red'
+                        : hasAnswered
+                          ? option === currentQuestion.correctAnswer
+                            ? 'bg-green-600/10 text-green-500 border-green-500/30 border-dashed'
+                            : 'opacity-10 scale-95'
+                          : 'hover:bg-orange-500/10 hover:border-orange-500/50'
                       }`}
                   >
+                    <span className="text-xs absolute top-2 left-4 text-gray-500 font-mono tracking-widest">INPUT_0{index + 1}</span>
                     {option}
                   </button>
                 ))}
@@ -240,50 +285,72 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ room, onGameEn
               {!hasAnswered && !hint && (
                 <button
                   onClick={handleHintRequest}
-                  className="mt-10 flex items-center space-x-2 text-orange-500/60 hover:text-orange-500 font-black uppercase italic text-xs tracking-widest transition-all"
+                  className="mt-12 flex items-center space-x-3 text-orange-500/40 hover:text-orange-500 font-black uppercase italic text-xs tracking-[0.4em] transition-all group"
                 >
-                  <Lightbulb className="w-4 h-4" />
-                  <span>Request Intel Overlay</span>
+                  <Lightbulb className="w-4 h-4 group-hover:animate-bounce" />
+                  <span>Request Intelligence Overlay</span>
                 </button>
               )}
             </div>
           </motion.div>
         </div>
 
-        {/* Bottom Squad Tracker */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-auto">
+        {/* BOTTOM SQUAD SENSORS */}
+        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-auto py-6">
           {Array.from(players.values()).map((player) => (
             <div
               key={player.id}
-              className={`tactical-panel p-3 flex items-center justify-between border-l-2 ${player.answered ? 'border-l-green-500 bg-green-500/5' : 'border-l-gray-700 bg-white/5'
+              className={`tactical-panel p-4 flex flex-col border-l-2 transition-all ${player.answered ? 'border-l-green-500 bg-green-500/5' : 'border-l-gray-800 bg-white/5 opacity-60'
                 }`}
             >
-              <div>
-                <p className="text-[10px] font-black text-gray-500 uppercase">{player.name}</p>
-                <p className="text-sm font-black italic italic">{player.score} XP</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[9px] font-black text-gray-600 uppercase truncate pr-2">{player.name}</p>
+                <div className={`w-1.5 h-1.5 rounded-full ${player.answered ? 'bg-green-500 shadow-tactical-glow-green-player' : 'bg-gray-800 animate-pulse'}`} />
               </div>
-              <div className={`w-3 h-3 ${player.answered ? 'bg-green-500 shadow-tactical-glow-green-player' : 'bg-gray-800 animate-pulse'}`} />
+              <div className="flex justify-between items-baseline">
+                <span className="text-lg font-black italic text-white leading-none">{player.score}</span>
+                <span className="text-[8px] font-black text-gray-700 italic">XP_VAL</span>
+              </div>
+              <div className="h-0.5 bg-white/5 mt-2 w-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: player.answered ? '100%' : '0%' }}
+                  className="h-full bg-green-500/40"
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Round Overlays */}
+        {/* Results Overlay */}
         <AnimatePresence>
           {showResults && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center"
+              className="fixed inset-0 z-50 bg-black/95 backdrop-blur-2xl flex items-center justify-center p-8"
             >
-              <div className="tactical-panel p-10 max-w-sm w-full border-orange-500 shadow-tactical-glow-xl">
-                <h3 className="text-2xl font-black uppercase italic italic text-center mb-6">Engagement Results</h3>
-                <div className="space-y-3">
-                  {leaderboard.slice(0, 3).map((p, i) => (
-                    <div key={p.id} className="flex justify-between items-center p-3 bg-white/5 border border-white/10">
-                      <span className="text-sm font-black italic italic">{i + 1}. {p.name.toUpperCase()}</span>
-                      <span className="text-sm font-black italic italic text-orange-500">{p.score}</span>
-                    </div>
+              <div className="scanline" />
+              <div className="tactical-panel p-16 max-w-xl w-full border-orange-500 shadow-tactical-glow-xl text-center">
+                <HUDCorner />
+                <h3 className="text-4xl font-black uppercase italic italic text-center mb-10 glitch-text italic">Batch Debriefing</h3>
+                <div className="space-y-4">
+                  {leaderboard.slice(0, 5).map((p, i) => (
+                    <motion.div
+                      initial={{ x: -20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: i * 0.1 }}
+                      key={p.id}
+                      className="flex justify-between items-center p-4 bg-orange-600/5 border border-orange-500/20"
+                    >
+                      <span className="text-lg font-black italic italic italic flex items-center tracking-tight">
+                        <span className="text-orange-500/60 mr-4 text-xs font-mono">#{i + 1}</span>
+                        {p.name.toUpperCase()}
+                      </span>
+                      <span className="text-2xl font-black italic text-orange-500 tracking-tighter">{p.score} <span className="text-[10px] text-gray-500 uppercase">XP</span></span>
+                    </motion.div>
                   ))}
                 </div>
               </div>

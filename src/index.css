@@ -4,13 +4,18 @@
 
 @layer base {
     body {
-        @apply bg-[#0c0c0c] text-white font-sans overflow-x-hidden;
+        @apply bg-[#050505] text-gray-100 font-sans overflow-x-hidden selection:bg-orange-500 selection:text-white;
+        background-image:
+            linear-gradient(rgba(249, 115, 22, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(249, 115, 22, 0.05) 1px, transparent 1px);
+        background-size: 50px 50px;
     }
 }
 
 @layer components {
     .tactical-panel {
-        @apply bg-black/60 backdrop-blur-md border border-white/10 relative overflow-hidden;
+        @apply bg-black/80 backdrop-blur-xl border border-white/5 relative overflow-hidden;
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
     }
 
     .tactical-panel::before {
@@ -18,27 +23,109 @@
         @apply absolute top-0 left-0 w-[2px] h-full bg-orange-500/50 shadow-tactical-glow;
     }
 
+    .tactical-panel-cyan::before {
+        @apply bg-cyan-500/50;
+        box-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
+    }
+
+    /* Game HUD Corners */
+    .hud-corner {
+        @apply absolute w-4 h-4 border-orange-500/40 pointer-events-none;
+    }
+
+    .hud-corner-tl {
+        @apply top-0 left-0 border-t-2 border-l-2;
+    }
+
+    .hud-corner-tr {
+        @apply top-0 right-0 border-t-2 border-r-2;
+    }
+
+    .hud-corner-bl {
+        @apply bottom-0 left-0 border-b-2 border-l-2;
+    }
+
+    .hud-corner-br {
+        @apply bottom-0 right-0 border-b-2 border-r-2;
+    }
+
     .tactical-btn {
-        @apply relative px-6 py-3 font-bold uppercase tracking-wider transition-all duration-300 border border-white/20 hover:border-orange-500/50 hover:bg-orange-500/10 active:scale-95;
+        @apply relative px-8 py-4 font-black uppercase tracking-[0.2em] transition-all duration-300 border border-white/10 overflow-hidden text-sm;
+        clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%);
+    }
+
+    .tactical-btn::before {
+        content: '';
+        @apply absolute inset-0 bg-white/5 -translate-x-full hover:translate-x-0 transition-transform duration-500;
     }
 
     .tactical-btn-primary {
-        @apply tactical-btn bg-orange-600 text-white border-none hover:bg-orange-700 shadow-tactical-glow-lg;
+        @apply tactical-btn bg-orange-600/20 border-orange-600/50 text-orange-500 hover:bg-orange-600/40 hover:text-white shadow-tactical-glow-lg;
     }
 
     .hud-line {
-        @apply h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent w-full my-4;
+        @apply h-[1px] bg-gradient-to-r from-transparent via-orange-500/30 to-transparent w-full my-6;
+    }
+
+    .glitch-text {
+        animation: glitch 1s infinite linear alternate-reverse;
     }
 }
 
 @keyframes scanline {
     0% {
         transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 0.5;
     }
 
     100% {
         transform: translateY(100%);
+        opacity: 0;
     }
+}
+
+@keyframes glitch {
+    0% {
+        text-shadow: 2px 0 0 rgba(255, 0, 0, 0.5), -2px -2px 0 rgba(0, 255, 0, 0.5), 0 2px 0 rgba(0, 0, 255, 0.5);
+    }
+
+    25% {
+        text-shadow: -2px 0 0 rgba(255, 0, 0, 0.5), 2px 2px 0 rgba(0, 255, 0, 0.5), -1px -2px 0 rgba(0, 0, 255, 0.5);
+    }
+
+    50% {
+        text-shadow: 2px 2px 0 rgba(255, 0, 0, 0.5), -1px 1px 0 rgba(0, 255, 0, 0.5), 2px -1px 0 rgba(0, 0, 255, 0.5);
+    }
+
+    75% {
+        text-shadow: -1px -1px 0 rgba(255, 0, 0, 0.5), 1px -2px 0 rgba(0, 255, 0, 0.5), -2px 2px 0 rgba(0, 0, 255, 0.5);
+    }
+
+    100% {
+        text-shadow: 2px 0 0 rgba(255, 0, 0, 0.5), -2px -2px 0 rgba(0, 255, 0, 0.5), 0 2px 0 rgba(0, 0, 255, 0.5);
+    }
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        opacity: 0.2;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(1.05);
+    }
+}
+
+.pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
 }
 
 .scanline {
