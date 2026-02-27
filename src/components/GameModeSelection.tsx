@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { GameMode, DifficultyLevel } from '../types/game';
 import { gameModes, difficultyLevels } from '../data/gameModes';
-import { Star, Clock, Trophy, Zap } from 'lucide-react';
+import { Star, Clock, Trophy, Zap, ChevronLeft, ChevronRight, Target, Activity, Settings } from 'lucide-react';
 
 interface GameModeSelectionProps {
   selectedMode: GameMode | null;
@@ -13,6 +13,15 @@ interface GameModeSelectionProps {
   onBack: () => void;
 }
 
+const HUDCorner = () => (
+  <>
+    <div className="hud-corner hud-corner-tl" />
+    <div className="hud-corner hud-corner-tr" />
+    <div className="hud-corner hud-corner-bl" />
+    <div className="hud-corner hud-corner-br" />
+  </>
+);
+
 export const GameModeSelection: React.FC<GameModeSelectionProps> = ({
   selectedMode,
   selectedDifficulty,
@@ -22,203 +31,152 @@ export const GameModeSelection: React.FC<GameModeSelectionProps> = ({
   onBack
 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <motion.div 
-          className="text-center mb-8"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className="text-5xl font-bold text-white mb-4">
-            Choose Your Adventure
-          </h1>
-          <p className="text-xl text-gray-300">
-            Select a game mode and difficulty level to begin your math quest!
-          </p>
-        </motion.div>
+    <div className="min-h-screen bg-[#050505] text-white p-8 relative overflow-hidden font-mono">
+      <div className="scanline" />
+      <div className="fixed inset-0 z-0 opacity-10 pointer-events-none"
+        style={{
+          backgroundImage: 'linear-gradient(rgba(249, 115, 22, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(249, 115, 22, 0.1) 1px, transparent 1px)',
+          backgroundSize: '100px 100px'
+        }}
+      />
 
-        {/* Game Modes */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-white mb-6 text-center">Game Modes</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {gameModes.map((mode, index) => (
-              <motion.div
-                key={mode.id}
-                className={`
-                  relative cursor-pointer transform transition-all duration-300
-                  ${selectedMode?.id === mode.id ? 'scale-105 z-10' : 'hover:scale-102'}
-                `}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                onClick={() => onModeSelect(mode)}
-              >
-                <div className={`
-                  relative bg-white/10 backdrop-blur-lg rounded-2xl p-6 border-2 transition-all duration-300
-                  ${selectedMode?.id === mode.id 
-                    ? 'border-yellow-400 shadow-2xl shadow-yellow-400/25' 
-                    : 'border-white/20 hover:border-white/40'
-                  }
-                `}>
-                  {/* Selection Indicator */}
-                  {selectedMode?.id === mode.id && (
-                    <motion.div
-                      className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    >
-                      <Star className="w-4 h-4 text-white" />
-                    </motion.div>
-                  )}
+      <div className="max-w-7xl mx-auto relative z-10">
 
-                  {/* Mode Icon */}
-                  <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${mode.color} flex items-center justify-center text-3xl`}>
-                    {mode.icon}
-                  </div>
-
-                  <h3 className="text-xl font-bold text-white text-center mb-3">{mode.name}</h3>
-                  <p className="text-gray-300 text-center mb-4">{mode.description}</p>
-
-                  {/* Features */}
-                  <div className="space-y-2">
-                    {mode.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-center space-x-2">
-                        <Zap className="w-4 h-4 text-yellow-400" />
-                        <span className="text-sm text-gray-300">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+        {/* Header HUD */}
+        <div className="flex justify-between items-end mb-12">
+          <div className="tactical-panel px-8 py-4 border-l-cyan-500 tactical-panel-cyan">
+            <HUDCorner />
+            <h1 className="text-4xl font-black uppercase italic italic tracking-tighter glitch-text leading-none italic">Mission Parameters</h1>
+            <p className="text-[10px] font-black text-cyan-500/60 uppercase tracking-[0.5em] mt-2">Setting Engagement Protocols</p>
           </div>
-        </div>
 
-        {/* Difficulty Levels */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-6 text-center">Difficulty Level</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {difficultyLevels.map((difficulty, index) => (
-              <motion.div
-                key={difficulty.id}
-                className={`
-                  cursor-pointer transform transition-all duration-300
-                  ${selectedDifficulty?.id === difficulty.id ? 'scale-105' : 'hover:scale-102'}
-                `}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                onClick={() => onDifficultySelect(difficulty)}
-              >
-                <div className={`
-                  relative bg-white/10 backdrop-blur-lg rounded-xl p-4 border-2 transition-all duration-300
-                  ${selectedDifficulty?.id === difficulty.id 
-                    ? 'border-yellow-400 shadow-xl shadow-yellow-400/25' 
-                    : 'border-white/20 hover:border-white/40'
-                  }
-                `}>
-                  {/* Selection Indicator */}
-                  {selectedDifficulty?.id === difficulty.id && (
-                    <motion.div
-                      className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    >
-                      <Star className="w-3 h-3 text-white" />
-                    </motion.div>
-                  )}
-
-                  <div className={`w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-r ${difficulty.color} flex items-center justify-center`}>
-                    <Trophy className="w-6 h-6 text-white" />
-                  </div>
-
-                  <h4 className="font-bold text-white text-center mb-2">{difficulty.name}</h4>
-                  <p className="text-xs text-gray-300 text-center mb-2">{difficulty.gradeRange}</p>
-                  
-                  <div className="flex items-center justify-center space-x-1 text-xs text-gray-400">
-                    <Clock className="w-3 h-3" />
-                    <span>{difficulty.timeLimit}s</span>
-                  </div>
-                  
-                  <div className="text-center mt-2">
-                    <span className="text-xs bg-yellow-400/20 text-yellow-400 px-2 py-1 rounded-full">
-                      {difficulty.pointMultiplier}x points
-                    </span>
-                  </div>
+          <div className="hidden lg:flex items-center space-x-12 opacity-40">
+            <div className="flex items-center space-x-4">
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] font-black uppercase">System_Load</span>
+                <div className="flex space-x-1 mt-1">
+                  {[1, 1, 1, 0, 0].map((v, i) => <div key={i} className={`w-2 h-1 ${v ? 'bg-cyan-500' : 'bg-white/10'}`} />)}
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Selection Summary */}
-        {(selectedMode || selectedDifficulty) && (
-          <motion.div
-            className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-8 border border-yellow-400/30"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-white mb-4">Your Selection</h3>
-              <div className="flex items-center justify-center space-x-8">
-                {selectedMode && (
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${selectedMode.color} flex items-center justify-center text-xl`}>
-                      {selectedMode.icon}
-                    </div>
-                    <div>
-                      <p className="text-white font-semibold">{selectedMode.name}</p>
-                      <p className="text-gray-300 text-sm">Game Mode</p>
-                    </div>
-                  </div>
-                )}
-                
-                {selectedDifficulty && (
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${selectedDifficulty.color} flex items-center justify-center`}>
-                      <Trophy className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-white font-semibold">{selectedDifficulty.name}</p>
-                      <p className="text-gray-300 text-sm">{selectedDifficulty.gradeRange}</p>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
-          </motion.div>
-        )}
+            <div className="flex flex-col items-end">
+              <span className="text-[9px] font-black uppercase">Operation</span>
+              <span className="text-lg font-black italic">ACTIVE</span>
+            </div>
+          </div>
+        </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-center space-x-4">
-          <motion.button
+        <div className="grid grid-cols-12 gap-8">
+
+          {/* Left: Game Modes Selection */}
+          <div className="col-span-12 lg:col-span-8 flex flex-col space-y-6">
+            <div className="p-2 border-b border-white/5 flex items-center justify-between">
+              <h2 className="text-xs font-black uppercase tracking-[0.4em] text-gray-400">Tactical Modules</h2>
+              <span className="text-[10px] font-black text-white/20">01 / 06</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {gameModes.map((mode, index) => (
+                <motion.button
+                  key={mode.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  onClick={() => onModeSelect(mode)}
+                  className={`tactical-panel p-6 text-left group transition-all duration-300 border-l-2 relative ${selectedMode?.id === mode.id
+                      ? 'bg-cyan-500/10 border-l-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
+                      : 'bg-white/5 border-l-gray-800 hover:border-l-cyan-500/30'
+                    }`}
+                >
+                  <HUDCorner />
+                  <div className="flex justify-between items-start mb-4">
+                    <span className="text-[24px] group-hover:scale-110 transition-transform">{mode.icon}</span>
+                    <div className={`px-2 py-0.5 border border-white/10 text-[8px] font-black uppercase tracking-widest ${selectedMode?.id === mode.id ? 'text-cyan-500 border-cyan-500/30' : 'text-gray-600'}`}>
+                      {selectedMode?.id === mode.id ? 'Active' : 'Standby'}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-black uppercase italic italic mb-1 italic">{mode.name}</h3>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-tight line-clamp-2 leading-tight">{mode.description}</p>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {mode.features.slice(0, 2).map((f, i) => (
+                      <span key={i} className="text-[8px] font-black text-white/30 border border-white/5 px-2 py-0.5 uppercase">{f}</span>
+                    ))}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Difficulty Selection */}
+          <div className="col-span-12 lg:col-span-4 flex flex-col space-y-6">
+            <div className="p-2 border-b border-white/5 flex items-center justify-between">
+              <h2 className="text-xs font-black uppercase tracking-[0.4em] text-gray-400">Intensity Grade</h2>
+              <Target className="w-4 h-4 text-cyan-500/40" />
+            </div>
+
+            <div className="space-y-3">
+              {difficultyLevels.map((diff, index) => (
+                <button
+                  key={diff.id}
+                  onClick={() => onDifficultySelect(diff)}
+                  className={`tactical-panel w-full p-4 text-left transition-all border-r-2 ${selectedDifficulty?.id === diff.id
+                      ? 'bg-orange-500/10 border-r-orange-500'
+                      : 'bg-white/5 border-r-transparent hover:bg-white/10'
+                    }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="text-sm font-black uppercase italic italic mb-0.5 italic">{diff.name}</h4>
+                      <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">{diff.gradeRange}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-base font-black italic italic text-orange-500">x{diff.pointMultiplier}</span>
+                      <p className="text-[8px] font-black text-gray-700 uppercase">XP Multi</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-auto tactical-panel p-6 bg-black/60 border-t-2 border-t-cyan-500">
+              <HUDCorner />
+              <div className="space-y-4">
+                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                  <span className="text-gray-500">Link Status</span>
+                  <span className={selectedMode && selectedDifficulty ? 'text-green-500' : 'text-red-500'}>
+                    {selectedMode && selectedDifficulty ? 'READY' : 'PENDING'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                  <span className="text-gray-500">Processor</span>
+                  <span className="text-white">QUANTUM_V4</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="mt-12 flex justify-between items-center">
+          <button
             onClick={onBack}
-            className="px-6 py-3 bg-gray-500/20 border border-gray-400 text-gray-300 font-semibold rounded-xl hover:bg-gray-500/30 transition-all duration-200"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            className="tactical-btn border-2 border-gray-800 text-gray-500 hover:text-white hover:border-white/20 flex items-center px-10"
           >
-            Back
-          </motion.button>
-          
-          <motion.button
+            <ChevronLeft className="w-5 h-5 mr-2" />
+            PREVIOUS PHASE
+          </button>
+
+          <button
             onClick={onNext}
             disabled={!selectedMode || !selectedDifficulty}
-            className={`px-8 py-3 font-bold rounded-xl transition-all duration-200 ${
-              selectedMode && selectedDifficulty
-                ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white hover:from-green-500 hover:to-emerald-600 shadow-lg'
-                : 'bg-gray-500/20 text-gray-500 cursor-not-allowed'
-            }`}
-            whileHover={selectedMode && selectedDifficulty ? { scale: 1.05 } : {}}
-            whileTap={selectedMode && selectedDifficulty ? { scale: 0.95 } : {}}
+            className={`tactical-btn-primary px-16 py-6 text-2xl flex items-center ${!selectedMode || !selectedDifficulty ? 'opacity-20 cursor-not-allowed' : ''}`}
           >
-            Start Adventure →
-          </motion.button>
+            CONFIRM DEPLOYMENT
+            <ChevronRight className="w-8 h-8 ml-4" />
+          </button>
         </div>
+
       </div>
     </div>
   );
