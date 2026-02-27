@@ -112,7 +112,7 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ room, onGameEn
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-8 relative overflow-hidden">
         <div className="scanline" />
         <div className="tactical-panel p-12 max-w-2xl w-full text-center bg-gradient-to-br from-black to-orange-950/20">
-          <Trophy className="w-20 h-20 text-orange-500 mx-auto mb-6 shadow-[0_0_30px_rgba(234,88,12,0.5)]" />
+          <Trophy className="w-20 h-20 text-orange-500 mx-auto mb-6 shadow-tactical-glow-xl" />
           <h1 className="text-4xl font-black uppercase italic italic text-white mb-2">Operation Complete</h1>
           <p className="text-orange-500 font-bold mb-8 uppercase tracking-widest italic tracking-[0.3em]">Final Debriefing</p>
 
@@ -120,7 +120,7 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ room, onGameEn
             {leaderboard.map((player, index) => (
               <div
                 key={player.id}
-                className={`flex items-center justify-between p-4 border ${index === 0 ? 'bg-orange-600/20 border-orange-500 shadow-[0_0_15px_rgba(234,88,12,0.2)]' : 'bg-white/5 border-white/10'
+                className={`flex items-center justify-between p-4 border ${index === 0 ? 'bg-orange-600/20 border-orange-500 shadow-tactical-glow-leader' : 'bg-white/5 border-white/10'
                   }`}
               >
                 <div className="flex items-center space-x-4">
@@ -223,8 +223,8 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ room, onGameEn
                     disabled={hasAnswered}
                     className={`tactical-btn py-8 text-3xl font-black italic italic ${selectedAnswer === option
                       ? lastResult?.correct
-                        ? 'bg-green-600 text-white border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
-                        : 'bg-red-600 text-white border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)]'
+                        ? 'bg-green-600 text-white border-green-500 shadow-tactical-glow-green'
+                        : 'bg-red-600 text-white border-red-500 shadow-tactical-glow-red'
                       : hasAnswered
                         ? option === currentQuestion.correctAnswer
                           ? 'bg-green-600/20 text-green-500 border-green-500/50'
@@ -262,7 +262,7 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ room, onGameEn
                 <p className="text-[10px] font-black text-gray-500 uppercase">{player.name}</p>
                 <p className="text-sm font-black italic italic">{player.score} XP</p>
               </div>
-              <div className={`w-3 h-3 ${player.answered ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.8)]' : 'bg-gray-800 animate-pulse'}`} />
+              <div className={`w-3 h-3 ${player.answered ? 'bg-green-500 shadow-tactical-glow-green-player' : 'bg-gray-800 animate-pulse'}`} />
             </div>
           ))}
         </div>
@@ -276,7 +276,7 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ room, onGameEn
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center"
             >
-              <div className="tactical-panel p-10 max-w-sm w-full border-orange-500 shadow-[0_0_50px_rgba(234,88,12,0.3)]">
+              <div className="tactical-panel p-10 max-w-sm w-full border-orange-500 shadow-tactical-glow-xl">
                 <h3 className="text-2xl font-black uppercase italic italic text-center mb-6">Engagement Results</h3>
                 <div className="space-y-3">
                   {leaderboard.slice(0, 3).map((p, i) => (

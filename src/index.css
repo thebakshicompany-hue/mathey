@@ -15,7 +15,7 @@
 
     .tactical-panel::before {
         content: '';
-        @apply absolute top-0 left-0 w-[2px] h-full bg-orange-500/50 shadow-[0_0_10px_rgba(249, 115, 22, 0.5)];
+        @apply absolute top-0 left-0 w-[2px] h-full bg-orange-500/50 shadow-tactical-glow;
     }
 
     .tactical-btn {
@@ -23,7 +23,7 @@
     }
 
     .tactical-btn-primary {
-        @apply tactical-btn bg-orange-600 text-white border-none hover:bg-orange-700 shadow-[0_0_20px_rgba(234, 88, 12, 0.3)];
+        @apply tactical-btn bg-orange-600 text-white border-none hover:bg-orange-700 shadow-tactical-glow-lg;
     }
 
     .hud-line {

@@ -93,7 +93,7 @@ function App() {
       <nav className="relative z-10 flex items-center justify-between px-8 py-4 border-b border-white/10 bg-black/40 backdrop-blur-md">
         <div className="flex items-center space-x-8">
           <div className="flex items-center space-x-2 mr-8">
-            <div className="w-10 h-10 bg-orange-600 rounded flex items-center justify-center font-black text-xl italic shadow-[0_0_15px_rgba(234,88,12,0.5)]">M</div>
+            <div className="w-10 h-10 bg-orange-600 rounded flex items-center justify-center font-black text-xl italic shadow-tactical-glow-logo">M</div>
             <span className="text-2xl font-black tracking-tighter uppercase italic">Mathey <span className="text-orange-500">Ops</span></span>
           </div>
           <div className="hidden lg:flex items-center space-x-6 text-sm font-bold uppercase tracking-widest text-gray-400">
@@ -182,7 +182,7 @@ function App() {
             <img
               src="/images/character-tactical.png"
               alt="Tactical Operator"
-              className="max-h-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+              className="max-h-full object-contain drop-shadow-tactical-operator"
             />
             {/* HUD Elements around character */}
             <div className="absolute top-[20%] left-0 w-32 tactical-panel p-2 text-[10px]">
@@ -215,7 +215,7 @@ function App() {
                 <span className="text-orange-500">12,450 / 15,000 XP</span>
               </div>
               <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/10">
-                <div className="h-full bg-orange-600 w-[83%] shadow-[0_0_10px_rgba(234,88,12,0.8)]" />
+                <div className="h-full bg-orange-600 w-[83%] shadow-tactical-glow-xp" />
               </div>
             </div>
           </div>

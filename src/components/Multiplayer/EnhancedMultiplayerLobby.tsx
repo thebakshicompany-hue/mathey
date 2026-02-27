@@ -305,7 +305,7 @@ export const EnhancedMultiplayerLobby: React.FC<EnhancedMultiplayerLobbyProps> =
               {!isReady ? (
                 <button
                   onClick={handleReady}
-                  className="w-full py-6 bg-orange-600 text-white font-black text-2xl uppercase italic tracking-widest shadow-[0_0_30px_rgba(234,88,12,0.4)] hover:bg-orange-500 transition-all active:scale-95"
+                  className="w-full py-6 bg-orange-600 text-white font-black text-2xl uppercase italic tracking-widest shadow-tactical-glow-ready hover:bg-orange-500 transition-all active:scale-95"
                 >
                   Confirm Readiness
                 </button>
@@ -387,7 +387,7 @@ export const EnhancedMultiplayerLobby: React.FC<EnhancedMultiplayerLobbyProps> =
               key={countdown}
               initial={{ scale: 2, opacity: 0, rotate: -10 }}
               animate={{ scale: 1, opacity: 1, rotate: 0 }}
-              className="text-9xl font-black italic text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.3)]"
+              className="text-9xl font-black italic text-white drop-shadow-tactical-hud"
             >
               {countdown}
             </motion.div>
@@ -397,7 +397,7 @@ export const EnhancedMultiplayerLobby: React.FC<EnhancedMultiplayerLobbyProps> =
                   key={i}
                   animate={{ opacity: [0.2, 1, 0.2] }}
                   transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                  className="w-12 h-1 bg-orange-500 shadow-[0_0_15px_rgba(234,88,12,0.8)]"
+                  className="w-12 h-1 bg-orange-500 shadow-tactical-glow-countdown"
                 />
               ))}
             </div>
