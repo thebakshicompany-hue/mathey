@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Room } from 'colyseus.js';
-import { Clock, Lightbulb, Trophy, Users, Target, Shield, Zap, AlertTriangle } from 'lucide-react';
+import { Clock, Lightbulb, Trophy, Users, Shield } from 'lucide-react';
 import { colyseusClient } from '../../lib/colyseus-client';
 import { Player, MathQuestion } from '../../types/game';
 
@@ -221,14 +222,14 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({ room, onGameEn
                     onClick={() => handleAnswerSubmit(option)}
                     disabled={hasAnswered}
                     className={`tactical-btn py-8 text-3xl font-black italic italic ${selectedAnswer === option
-                        ? lastResult?.correct
-                          ? 'bg-green-600 text-white border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
-                          : 'bg-red-600 text-white border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)]'
-                        : hasAnswered
-                          ? option === currentQuestion.correctAnswer
-                            ? 'bg-green-600/20 text-green-500 border-green-500/50'
-                            : 'opacity-20 translate-y-1'
-                          : 'hover:bg-orange-500/10 hover:border-orange-500/50'
+                      ? lastResult?.correct
+                        ? 'bg-green-600 text-white border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
+                        : 'bg-red-600 text-white border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)]'
+                      : hasAnswered
+                        ? option === currentQuestion.correctAnswer
+                          ? 'bg-green-600/20 text-green-500 border-green-500/50'
+                          : 'opacity-20 translate-y-1'
+                        : 'hover:bg-orange-500/10 hover:border-orange-500/50'
                       }`}
                   >
                     {option}
